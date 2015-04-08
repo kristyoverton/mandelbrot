@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<style type="text/css">
+	canvas {
+		border:1px solid black;
+		}</style>
+</head>
+<body>
+	<div margin="50">
+		<canvas id="myCanvas"></canvas></div>
+	
+</body>
+<script type="text/javascript">
+		var complex = (function () {
+
+			var complex = function(re, im) {
+				this.re = re;
+				this.im = im;
+			}
+
+			complex.prototype = {
+				constructor: complex,
+				add: function(b){
+					var total = new complex(this.re+b.re, this.im + b.im);
+					return total;
+				},
+				sub: function(b){
+					var total = new complex(this.re-b.re, this.im - b.im);
+					return total;
+				},
+				mult: function(b){
+					var total = new complex(this.re*b.re - this.im * b.im, this.re * b.im + this.im * b.re);
+					return total;
+				},
+				conj: function(){
+					var total = new complex(this.re, this.im*-1);
+					return total;
+				},
+				abs: function(){
+					var total = Math.sqrt(this.re*this.re+this.im*this.im);
+					return total;
+				},
+				reciprocal: function(){
+					var temp = this.conj();
+					var denom = this.abs()*this.abs();
+					var total = new complex(temp.re/denom, temp.im/denom);
+					return total;
+				},
+				div: function(b){
+					var temp = b.reciprocal();
+					var total = this.mult(temp);
+					return total;
+				}
+			} // prototype
+		return complex;
+	})();
+
+	var setStepSize = function(width,height) {
+		var stepX = 2/width;
+		var stepY = 2/height;
+		return ([stepX,stepY]);
+	}
+
+	function setRange(val, min, max) {
+		if (val < min) {
+			return 0;
+		}
+		else if (val > max) {
+			return 255;
+		}
+		else {
+			return Math.floor(255*(val - min) / (max - min)); 
+		}
+
+	}
+
+	var canvasWidth = 800;
+	var canvasHeight = 600;
+	var stepSize = setStepSize(canvasWidth,canvasHeight);
+	var canvas = document.getElementById("myCanvas");
+	canvas.setAttribute("width",canvasWidth);
+	canvas.setAttribute("height",canvasHeight);
+	var ctx = canvas.getContext("2d"); 
+	ctx.beginPath();
+	var xval = -2;
+	var yval = -1;
+
+	for(var xcoord = 0; xcoord <=canvasWidth; xcoord++) {
+		yval = -1;
+		for(var ycoord = 0; ycoord <=canvasHeight; ycoord++) {
+			var num = new complex(xval,yval);
+			var z = new complex(0,0);
+			var i = 0;
+			for (i = 0; i < 32; i++) {
+				z = z.mult(z);
+				z = z.add(num);
+				newnum = z.abs();
+				if (newnum > 4) {
+					break;
+				}
+			}//for			
+			if (i > 0) {
+				var color = 256 - (i * 8);
+				var blue = setRange(color, 0, 128);
+				var green = setRange(color, 64, 192);
+				var red = 255-setRange(color, 128, 255);
+				ctx.fillStyle = "rgb("+red+","+green+","+blue+")";
+				ctx.fillRect(xcoord,ycoord,1,1);
+				//ctx.stroke();
+			}
+			yval += stepSize[1];
+		} //y
+		xval += stepSize[0];
+	} //x
+	</script>
+</html>
